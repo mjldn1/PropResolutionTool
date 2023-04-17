@@ -1,0 +1,43 @@
+<html> 
+    <head> 
+        <script type = "text/javascript" src = "PropResSolver.js"></script>
+        <script>JSCLASS_PATH = '/JS.Class/min'</script>
+        <script src="JS.Class/min/loader-browser.js"></script>
+        <meta charset="UTF-8">
+    </head> 
+
+    <body>
+        <h3>Input Formula you wish to resolve:</h3>
+        <label for="formula">Formula: </label>
+        <input type="text" id="CNF" />
+
+        <button type="button" onclick="getFormula()">
+            use formula
+        </button>
+
+        <h3></h3>
+        <p id="output"></p>
+
+        <h3>What clauses and propositions do you want to resolve</h3>
+
+
+        <label for="clause1">clause 1 index: </label>
+        <input type="text" id="clause1" />
+        <br>
+        <label for="clause2">clause 2 index: </label>
+        <input type="text" id="clause2" />
+        <br>
+        <label for="literal">prop variable </label>
+        <input type="text" id="literal" />
+        <br>
+
+        <button type="button" onclick="resolve()">
+            Resolve
+        </button>
+
+        <p id="emptyclause"></p>
+
+    
+    </body>
+</html>
+
