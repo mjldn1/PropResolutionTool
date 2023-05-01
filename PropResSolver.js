@@ -1,5 +1,3 @@
-
-
 function union(setA, setB) {
   const union = new Set(setA);
 
@@ -28,11 +26,11 @@ var edges = new vis.DataSet([
   // {from: 1, to: 2}
 ]);
 
-var edges1 = new vis.DataSet([
-  // {from: 3, to: 2},
-  // {from: 2, to: 4},
-  // {from: 2, to: 5}
-]);
+// var edges1 = new vis.DataSet([
+//   // {from: 3, to: 2},
+//   // {from: 2, to: 4},
+//   // {from: 2, to: 5}
+// ]);
 
 // create a network
 
@@ -44,10 +42,10 @@ var data = {
   edges: edges
 };
 
-var data1 = {
-  nodes: nodes,
-  edges: edges1
-};
+// var data1 = {
+//   nodes: nodes,
+//   edges: edges1
+// };
 var options = {
   layout: {
     hierarchical: {
@@ -126,6 +124,14 @@ function resolve(){
     console.log(literal)
     console.log(literalNeg)
 
+    clause1exists = false
+    clause2exists = false
+
+    clause1used = false
+    clause2used = false
+
+    // clause1index;
+    // clause2index;
     // //change into different cases.
     // if( (set[clause1].has(literal) && set[clause2].has(literalNeg)) || (set[clause1].has(literalNeg) && set[clause2].has(literal))){
     //   set[set.length] = union(set[clause1], set[clause2])
@@ -148,15 +154,148 @@ function resolve(){
       string2 = Array.from(set[clause2]).join(',')
       string3 = Array.from(set[set.length-1]).join(',')
 
-      network.body.data.nodes.add([ {id: (3*resIteration)-2, label: `${string1}`}])
-      network.body.data.nodes.add([ {id: (3*resIteration)-1, label: `${string2}`}])
-      network.body.data.nodes.add([ {id: (3*resIteration), label: `${string3}`}])
+      currentNodes = network.body.data.nodes.get()
+      for (let i=0; i<currentNodes.length;  i++){
+        console.log(currentNodes[i].label)
+        if (currentNodes[i].label == string1){
+          clause1exists = true
+          clause1index = i+1
+        }
+        else if (currentNodes[i].label == string2){
+          clause2exists = true
+          clause2index = i+1
+        }
+      }
+      console.log(clause1exists)
+      console.log(string1)
+      console.log(clause2exists)
+      console.log(string2)
+      console.log(currentNodes)
 
+      if(clause1exists){
+        //clause1edges = network.GetConnectedEdges(clause1index)
+        clause1edges = edges.get().filter(function (edge) {
+          return edge.from === clause1index
+        });
+        for (var i = 0; i < clause1edges.length; i++) {
+          var edge = clause1edges[i];
+          if (edge.from === clause1index) {
+            clause1used = true
+          }
+        }
+      }
 
-      network.body.data.edges.add([{from: (3*resIteration)-2, to: (3*resIteration)}])
-      network.body.data.edges.add([{from: (3*resIteration)-1, to: (3*resIteration)}])
+      if(clause2exists){
+        //clause2edges = network.GetConnectedEdges(clause2index)
+        clause2edges = edges.get().filter(function (edge) {
+          return edge.from === clause2index
+        });
+        for (var i = 0; i < clause2edges.length; i++) {
+          var edge = clause2edges[i];
+          if (edge.from === clause2index) {
+            clause2used = true
+          }
+        }
+      }
 
-      resIteration++; 
+      if (clause1exists == true && clause2exists == true){
+        //check if there is an outgoing edge of these clauses. If there is, create new edges, if not delete
+        //from each edge, there is an edge from and an edge to.
+        //get all edges connected to an existing clause. loop through until an edge goes from the clause
+        //if there is an edge from, create new node
+        //if not, use existing node
+        
+        if (clause1used == true && clause2used == true){
+          //both exist but are already used. Add new nodes for both
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+
+        }
+        else if (clause1used == true && clause2used == false){
+          //both exist, but only clause 1 is used. Add a new node for clause 1, add edges to this new clause and connect to clause 2 
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
+        }
+        else if (clause1used == false && clause2used == true){
+          //both exist, only clause 2 is used. Add a new node for clause 2, add edges to this new clause and to clause 1
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}])
+
+        }
+        else if (clause1used == false &&  clause2used == false){
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get()+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
+          network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
+        }
+
+        //make node of the resolved clause
+        //connect node of resolved clause to clause 1 and clause 2
+        // network.body.data.nodes.add([ {id: network.body.data.nodes.get()+1, label: `${string3}`}])
+
+        // network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
+        // network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
+
+      }
+      else if (clause1exists == true && clause2exists == false){
+        //make node for clause 2 and for the resolved clause
+        //connect the edges from clause 1 and clause 2 to the resolved clause
+
+        //we only need to check if the existing clause has a node, if/else statements
+        if (clause1used == true){//make new nodes
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+        else{//use existing node for clause 1
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+
+        
+      }
+      else if (clause1exists == false && clause2exists == true){
+        if (clause2used == true){//create new node
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+        else{ //used existing node for clause 2
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}]) 
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+        
+      }
+      else if (clause1exists == false && clause2exists == false){
+        network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+        network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+        network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+        network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+        network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+      }
     }
     else if(set[clause1].has(literalNeg) && set[clause2].has(literal)){
       set1 = new Set([])
@@ -176,15 +315,168 @@ function resolve(){
       string2 = Array.from(set[clause2]).join(',')
       string3 = Array.from(set[set.length-1]).join(',')
 
-      network.body.data.nodes.add([ {id: (3*resIteration)-2, label: `${string1}`}])
-      network.body.data.nodes.add([ {id: (3*resIteration)-1, label: `${string2}`}])
-      network.body.data.nodes.add([ {id: (3*resIteration), label: `${string3}`}])
+      currentNodes = network.body.data.nodes.get()
+      for (let i=0; i<currentNodes.length;  i++){
+        console.log(currentNodes[i].label)
+        if (currentNodes[i].label == string1){
+          clause1exists = true
+          clause1index = i+1
+        }
+        else if (currentNodes[i].label == string2){
+          clause2exists = true
+          clause2index = i+1
+        }
+      }
+      console.log(clause1exists)
+      console.log(string1)
+      console.log(clause2exists)
+      console.log(string2)
+      console.log(currentNodes)
+
+      //loops check if the clause is used in a resolution already
+
+      if(clause1exists){
+        //clause1edges = network.GetConnectedEdges(clause1index)
+        clause1edges = edges.get().filter(function (edge) {
+          return edge.from === clause1index
+        });
+        for (var i = 0; i < clause1edges.length; i++) {
+          var edge = clause1edges[i];
+          if (edge.from === clause1index) {
+            clause1used = true
+          }
+        }
+      }
+
+      if(clause2exists){
+        //clause2edges = network.GetConnectedEdges(clause2index)
+        clause2edges = edges.get().filter(function (edge) {
+          return edge.from === clause2index
+        });
+        console.log(clause2edges)
+        //console.log(clause2index)
+        //console.log(network.body.edges)
+        //console.log(clause2edges[i].from)
+
+        //if there are no outgoing edges, clause2used is false, we do nothing
+         
+
+        for (var i = 0; i < clause2edges.length; i++) {
+          var edge = clause2edges[i]; //doesn't successfully take from the edges
+          console.log(clause2edges[i])
+          console.log(edge)
+          console.log(clause2edges)
+          if (edge.from === clause2index) { //find how to actually refer to the from property
+            clause2used = true
+          }
+        }
+      }
 
 
-      network.body.data.edges.add([{from: (3*resIteration)-2, to: (3*resIteration)}])
-      network.body.data.edges.add([{from: (3*resIteration)-1, to: (3*resIteration)}])
       
-      resIteration++;
+
+      
+
+      
+
+      if (clause1exists == true && clause2exists == true){
+        //check if there is an outgoing edge of these clauses. If there is, create new edges, if not delete
+        //from each edge, there is an edge from and an edge to.
+        //get all edges connected to an existing clause. loop through until an edge goes from the clause
+        //if there is an edge from, create new node
+        //if not, use existing node
+        
+        if (clause1used == true && clause2used == true){
+          //both exist but are already used. Add new nodes for both
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+
+        }
+        else if (clause1used == true && clause2used == false){
+          //both exist, but only clause 1 is used. Add a new node for clause 1, add edges to this new clause and connect to clause 2 
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
+        }
+        else if (clause1used == false && clause2used == true){
+          //both exist, only clause 2 is used. Add a new node for clause 2, add edges to this new clause and to clause 1
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([{id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}])
+
+        }
+        else if (clause1used == false &&  clause2used == false){
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get()+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
+          network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
+        }
+
+        //make node of the resolved clause
+        //connect node of resolved clause to clause 1 and clause 2
+        // network.body.data.nodes.add([ {id: network.body.data.nodes.get()+1, label: `${string3}`}])
+
+        // network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
+        // network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
+
+      }
+      else if (clause1exists == true && clause2exists == false){
+        //make node for clause 2 and for the resolved clause
+        //connect the edges from clause 1 and clause 2 to the resolved clause
+
+        //we only need to check if the existing clause has a node, if/else statements
+        if (clause1used == true){//make new nodes
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+        else{//use existing node for clause 1
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+          network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+
+        
+      }
+      else if (clause1exists == false && clause2exists == true){
+        if (clause2used == true){//create new node
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+        else{ //used existing node for clause 2
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+  
+          network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}]) 
+          network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+        }
+        
+      }
+      else if (clause1exists == false && clause2exists == false){
+        network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string1}`}])
+        network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string2}`}])
+        network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
+
+        network.body.data.edges.add([{from: network.body.data.nodes.get().length-2, to: network.body.data.nodes.get().length}])
+        network.body.data.edges.add([{from: network.body.data.nodes.get().length-1, to: network.body.data.nodes.get().length}])
+      }
     }
 
 
@@ -198,7 +490,7 @@ function resolve(){
     }
 
   //console.log(set)
-  document.getElementById("output").innerHTML = "The clauses are:" +val;
+  document.getElementById("output").innerHTML = "The clauses are: " +val;
 
   for (let i = 0; i < set.length; i++) { //used for while true loop. While !emptyclause, let the loop happen.
     if (set[i].size == 0){
