@@ -113,8 +113,8 @@ function getFormula(){
 
 function resolve(){
     // Take user input on clauses to resolve
-    var clause1 =  document.getElementById("clause1").value;
-    var clause2 =  document.getElementById("clause2").value;
+    var clause1 =  (document.getElementById("clause1").value)-1;
+    var clause2 =  (document.getElementById("clause2").value)-1;
   
     //takes user input on the propositions to resolve against
     literal = document.getElementById("literal").value;
@@ -126,6 +126,7 @@ function resolve(){
 
     clause1exists = false
     clause2exists = false
+    resExists = false
 
     clause1used = false
     clause2used = false
@@ -164,6 +165,9 @@ function resolve(){
         else if (currentNodes[i].label == string2){
           clause2exists = true
           clause2index = i+1
+        }
+        else if (currentNodes[i].label == string3){
+          resExists = true
         }
       }
       console.log(clause1exists)
@@ -325,6 +329,9 @@ function resolve(){
         else if (currentNodes[i].label == string2){
           clause2exists = true
           clause2index = i+1
+        }
+        else if (currentNodes[i].label == string3){
+          resExists = true
         }
       }
       console.log(clause1exists)
@@ -539,7 +546,7 @@ function resolve(){
 
 // }
 
-// var input = "<p,¬q><q,r><p,r>"
+// var input = "<p,¬q><q,r><p,r>" {p,¬q}{q,r}{p,r}
 
 // var item = input.split("><");
 // item[0] = item[0].replace("<", "")
