@@ -237,10 +237,13 @@ function resolve(){
 
         }
         else if (clause1used == false &&  clause2used == false){
-          network.body.data.nodes.add([ {id: network.body.data.nodes.get()+1, label: `${string3}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
 
           network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
           network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
+
+          console.log(clause1index)
+          console.log(clause2index)
         }
 
         //make node of the resolved clause
@@ -421,7 +424,7 @@ function resolve(){
 
         }
         else if (clause1used == false &&  clause2used == false){
-          network.body.data.nodes.add([ {id: network.body.data.nodes.get()+1, label: `${string3}`}])
+          network.body.data.nodes.add([ {id: network.body.data.nodes.get().length+1, label: `${string3}`}])
 
           network.body.data.edges.add([{from: clause1index, to: network.body.data.nodes.get().length}]) 
           network.body.data.edges.add([{from: clause2index, to: network.body.data.nodes.get().length}])
